@@ -58,8 +58,18 @@ public class Server {
     public static void main(String[] args) {
         Server server = new Server();
 
+        int port = 3000;
+        if (args.length > 0) {
+            try {
+                port = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid port number provided, using default port 3000.");
+                port = 3000;
+            }
+        } else {
+            System.out.println("No port number provided, using default port 3000.");
+        }
         try {
-            int port = 3000;
             ServerSocket serverSocket = new ServerSocket(port);
             System.out.println("Server listening on port: "+port);
             while (true) {
