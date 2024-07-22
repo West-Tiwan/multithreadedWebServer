@@ -19,45 +19,10 @@ public class Server {
                 PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(),true);
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-                String line;
-                StringBuilder request = new StringBuilder();
+                StringBuilder requestedPath = handleURL(bufferedReader);
 
-                while (!(line = bufferedReader.readLine()).isBlank()) {
-                    request.append(line).append("\n");
-                }
-                String URL = "";
-                String[] requestParts = request.toString().split("\\s+");
-                if (requestParts.length > 1) {
-                    URL = requestParts[1];
-                    System.out.println("URL: " + URL);
-                }
+                serveFile(printWriter, requestedPath);
 
-                StringBuilder requestedPath = new StringBuilder();
-                if (Objects.equals(URL, "/")) {
-                    requestedPath.append("views").append("/index.html");
-                } else if (URL.charAt(URL.length() - 1) == '/') {
-                    requestedPath.append("views").append(URL).append("index.html");
-                } else {
-                    requestedPath.append("views").append(URL).append(".html");
-                }
-
-                List<String> res = fileReader(String.valueOf(requestedPath));
-                if (res != null) {
-                    printWriter.println("HTTP/1.1 200 OK");
-                    printWriter.println("Content-Type: text/html");
-                    printWriter.println("Connection: close");
-                    printWriter.println("");
-
-                    for (String s : res) {
-                        printWriter.println(s);
-                    }
-                    System.out.println("File served");
-                } else {
-                    printWriter.println("HTTP/1.1 404 Not Found");
-                    printWriter.println("");
-                    printWriter.printf("<html><body><h1>ERROR 404 Not Found</h1><p>Requested file: %s</p></body></html>",String.valueOf(requestedPath));
-                }
-                printWriter.flush();
             } catch (Exception e) {
                 System.out.println(e.toString());
             } finally {
@@ -69,6 +34,51 @@ public class Server {
                 }
             }
         };
+    }
+
+    public static StringBuilder handleURL(BufferedReader bufferedReader) throws IOException {
+        String line;
+        StringBuilder request = new StringBuilder();
+
+        while (!(line = bufferedReader.readLine()).isBlank()) {
+            request.append(line).append("\n");
+        }
+        String URL = "";
+        String[] requestParts = request.toString().split("\\s+");
+        if (requestParts.length > 1) {
+            URL = requestParts[1];
+            System.out.println("URL: " + URL);
+        }
+
+        StringBuilder requestedPath = new StringBuilder();
+        if (Objects.equals(URL, "/")) {
+            requestedPath.append("views").append("/index.html");
+        } else if (URL.charAt(URL.length() - 1) == '/') {
+            requestedPath.append("views").append(URL).append("index.html");
+        } else {
+            requestedPath.append("views").append(URL).append(".html");
+        }
+        return requestedPath;
+    }
+
+    public static void serveFile(PrintWriter printWriter, StringBuilder requestedPath) {
+        List<String> res = fileReader(String.valueOf(requestedPath));
+        if (res != null) {
+            printWriter.println("HTTP/1.1 200 OK");
+            printWriter.println("Content-Type: text/html");
+            printWriter.println("Connection: close");
+            printWriter.println("");
+
+            for (String s : res) {
+                printWriter.println(s);
+            }
+            System.out.println("File served");
+        } else {
+            printWriter.println("HTTP/1.1 404 Not Found");
+            printWriter.println("");
+            printWriter.printf("<html><body><h1>ERROR 404 Not Found</h1><p>Requested file: %s</p></body></html>",String.valueOf(requestedPath));
+        }
+        printWriter.flush();
     }
 
     public static List<String> fileReader(String path) {
@@ -88,6 +98,7 @@ public class Server {
             return null;
         }
     }
+
     public static void main(String[] args) {
         Server server = new Server();
 
