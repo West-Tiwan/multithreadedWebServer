@@ -55,10 +55,28 @@ public class Server {
             requestedPath.append("views").append("/index.html");
         } else if (URL.charAt(URL.length() - 1) == '/') {
             requestedPath.append("views").append(URL).append("index.html");
+        } else if (getLastWordInURL(URL).equals("css")) {
+            requestedPath.append("views").append(URL);
         } else {
             requestedPath.append("views").append(URL).append(".html");
         }
         return requestedPath;
+    }
+
+    public static String getLastWordInURL(String url) {
+        String[] segments = url.split("/");
+        String lastSegment = "";
+        for (int i = segments.length - 1; i >= 0; i--) {
+            if (!segments[i].isEmpty()) {
+                lastSegment = segments[i];
+                break;
+            }
+        }
+        lastSegment = lastSegment.split("\\?")[0];
+        lastSegment = lastSegment.split("#")[0];
+        lastSegment = lastSegment.split("\\.")[1];
+        System.out.println(lastSegment);
+        return lastSegment;
     }
 
     public static void serveFile(PrintWriter printWriter, StringBuilder requestedPath) {
