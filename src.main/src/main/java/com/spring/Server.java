@@ -3,9 +3,13 @@ package com.spring;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Scanner;
 import java.util.function.Consumer;
-import java.nio.file.*;
 
 public class Server {
     public Consumer<Socket> consumer(){
@@ -14,9 +18,29 @@ public class Server {
                 System.out.println("New thread created");
                 PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(),true);
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                List<String> res = fileReader("index.html");
+
+                String line;
+                StringBuilder request = new StringBuilder();
+
+                while (!(line = bufferedReader.readLine()).isBlank()) {
+                    request.append(line).append("\n");
+                }
+                String URL = "";
+                String[] requestParts = request.toString().split("\\s+");
+                if (requestParts.length > 1) {
+                    URL = requestParts[1];
+                    System.out.println("URL: " + URL);
+                }
+
+                StringBuilder requestedPath = new StringBuilder();
+                if (Objects.equals(URL, "/")) {
+                    requestedPath.append("views").append("/index.html");
+                } else {
+                    requestedPath.append("views").append(URL).append(".html");
+                }
+
+                List<String> res = fileReader(String.valueOf(requestedPath));
                 if (res != null) {
-                    // Send HTTP response headers
                     printWriter.println("HTTP/1.1 200 OK");
                     printWriter.println("Content-Type: text/html");
                     printWriter.println("Connection: close");
@@ -29,8 +53,7 @@ public class Server {
                 } else {
                     printWriter.println("HTTP/1.1 404 Not Found");
                     printWriter.println("");
-                    printWriter.println("<html><body><h1>404 Not Found</h1></body></html>");
-                    printWriter.println("Connection: close");
+                    printWriter.printf("<html><body><h1>ERROR 404 Not Found</h1><p>Requested file: %s</p></body></html>",String.valueOf(requestedPath));
                 }
                 printWriter.flush();
             } catch (Exception e) {
@@ -48,13 +71,21 @@ public class Server {
 
     public static List<String> fileReader(String path) {
         try {
-            return Files.readAllLines(Paths.get(path));
+            Path filePath = Paths.get(System.getProperty("user.dir"), "src.main","src", "main","java","com","spring", path).normalize();
+            File myObj = filePath.toFile();
+            List<String> result = new ArrayList<>();
+            Scanner myReader = new Scanner(myObj);
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                result.add(data);
+            }
+            myReader.close();
+            return result;
         } catch (IOException e) {
             System.out.println(e.toString());
             return null;
         }
     }
-
     public static void main(String[] args) {
         Server server = new Server();
 
