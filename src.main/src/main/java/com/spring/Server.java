@@ -82,8 +82,13 @@ public class Server {
     public static void serveFile(PrintWriter printWriter, StringBuilder requestedPath) {
         List<String> res = fileReader(String.valueOf(requestedPath));
         if (res != null) {
+            String contentType = "text/html";
+            if (requestedPath.toString().endsWith(".css")) {
+                contentType = "text/css";
+            }
+
             printWriter.println("HTTP/1.1 200 OK");
-            printWriter.println("Content-Type: text/html");
+            printWriter.println("Content-Type: " + contentType);
             printWriter.println("Connection: close");
             printWriter.println("");
 
