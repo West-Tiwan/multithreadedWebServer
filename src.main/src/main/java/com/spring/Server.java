@@ -35,6 +35,8 @@ public class Server {
                 StringBuilder requestedPath = new StringBuilder();
                 if (Objects.equals(URL, "/")) {
                     requestedPath.append("views").append("/index.html");
+                } else if (URL.charAt(URL.length() - 1) == '/') {
+                    requestedPath.append("views").append(URL).append("index.html");
                 } else {
                     requestedPath.append("views").append(URL).append(".html");
                 }
