@@ -57,6 +57,10 @@ public class Server {
             requestedPath.append("views").append(URL).append("index.html");
         } else if (getLastWordInURL(URL).equals("css")) {
             requestedPath.append("views").append(URL);
+        } else if (getLastWordInURL(URL).equals("ico")) {
+            requestedPath.append("views").append(URL);
+        } else if (getLastWordInURL(URL).equals("svg")) {
+            requestedPath.append("views").append(URL);
         } else {
             requestedPath.append("views").append(URL).append(".html");
         }
@@ -74,8 +78,11 @@ public class Server {
         }
         lastSegment = lastSegment.split("\\?")[0];
         lastSegment = lastSegment.split("#")[0];
-        lastSegment = lastSegment.split("\\.")[1];
-        System.out.println(lastSegment);
+        try {
+            lastSegment = lastSegment.split("\\.")[1];
+        } catch (Exception e) {
+            lastSegment = lastSegment.split("\\.")[0];
+        }
         return lastSegment;
     }
 
@@ -85,6 +92,10 @@ public class Server {
             String contentType = "text/html";
             if (requestedPath.toString().endsWith(".css")) {
                 contentType = "text/css";
+            } else if (requestedPath.toString().endsWith(".ico")) {
+                contentType = "image/x-icon";
+            } else if (requestedPath.toString().endsWith(".svg")) {
+                contentType = "image/svg";
             }
 
             printWriter.println("HTTP/1.1 200 OK");
