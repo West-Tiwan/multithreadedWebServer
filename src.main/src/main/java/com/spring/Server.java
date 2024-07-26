@@ -61,6 +61,8 @@ public class Server {
             requestedPath.append("views").append(URL);
         } else if (getLastWordInURL(URL).equals("svg")) {
             requestedPath.append("views").append(URL);
+        } else if (getLastWordInURL(URL).equals("js")) {
+            requestedPath.append("views").append(URL);
         } else {
             requestedPath.append("views").append(URL).append(".html");
         }
