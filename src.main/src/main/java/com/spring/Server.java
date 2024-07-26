@@ -98,6 +98,8 @@ public class Server {
                 contentType = "image/x-icon";
             } else if (requestedPath.toString().endsWith(".svg")) {
                 contentType = "image/svg";
+            } else if (requestedPath.toString().endsWith(".js")) {
+                contentType = "text/javascript";
             }
 
             printWriter.println("HTTP/1.1 200 OK");
