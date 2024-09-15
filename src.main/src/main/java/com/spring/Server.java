@@ -91,16 +91,7 @@ public class Server {
     public static void serveFile(PrintWriter printWriter, StringBuilder requestedPath) {
         List<String> res = fileReader(String.valueOf(requestedPath));
         if (res != null) {
-            String contentType = "text/html";
-            if (requestedPath.toString().endsWith(".css")) {
-                contentType = "text/css";
-            } else if (requestedPath.toString().endsWith(".ico")) {
-                contentType = "image/x-icon";
-            } else if (requestedPath.toString().endsWith(".svg")) {
-                contentType = "image/svg";
-            } else if (requestedPath.toString().endsWith(".js")) {
-                contentType = "text/javascript";
-            }
+            String contentType = getContentType(requestedPath);
 
             printWriter.println("HTTP/1.1 200 OK");
             printWriter.println("Content-Type: " + contentType);
@@ -117,6 +108,24 @@ public class Server {
             printWriter.printf("<html><body><h1>ERROR 404 Not Found</h1><p>Requested file: %s</p></body></html>",String.valueOf(requestedPath));
         }
         printWriter.flush();
+    }
+
+    private static String getContentType(StringBuilder requestedPath) {
+        String contentType = "text/html";
+        if (requestedPath.toString().endsWith(".css")) {
+            contentType = "text/css";
+        } else if (requestedPath.toString().endsWith(".ico")) {
+            contentType = "image/x-icon";
+        } else if (requestedPath.toString().endsWith(".svg")) {
+            contentType = "image/svg+xml";
+        } else if (requestedPath.toString().endsWith(".js")) {
+            contentType = "text/javascript";
+        } else if (requestedPath.toString().endsWith(".png")) {
+            contentType = "image/png";
+        } else if (requestedPath.toString().endsWith(".jpg") || requestedPath.toString().endsWith(".jpeg")) {
+            contentType = "image/jpeg";
+        }
+        return contentType;
     }
 
     public static List<String> fileReader(String path) {
@@ -146,19 +155,22 @@ public class Server {
                 port = Integer.parseInt(args[0]);
             } catch (NumberFormatException e) {
                 System.out.println("Invalid port number provided, using default port 3000.");
-                port = 3000;
             }
         } else {
             System.out.println("No port number provided, using default port 3000.");
         }
-        try {
-            ServerSocket serverSocket = new ServerSocket(port);
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Server listening on port: "+port);
             while (true) {
-                Socket socket = serverSocket.accept();
-                System.out.println("Connection accepted");
-                Thread thread = new Thread(()->server.consumer().accept(socket));
-                thread.start();
+                try {
+                    Socket socket = serverSocket.accept();
+                    System.out.println("Connection accepted");
+                    Thread thread = new Thread(() -> server.consumer().accept(socket));
+                    thread.start();
+                } catch (IOException e) {
+                    System.out.println("Error accepting connection: " + e.toString());
+                    break; // Break out of the loop if an exception occurs
+                }
             }
         } catch (IOException e) {
             System.out.println(e.toString());
